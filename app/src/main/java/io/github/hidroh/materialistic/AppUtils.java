@@ -538,8 +538,7 @@ public class AppUtils {
         Intent intent = new Intent(Intent.ACTION_SEND)
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, subject)
-                .putExtra(Intent.EXTRA_TEXT, !TextUtils.isEmpty(subject) ?
-                        TextUtils.join(" - ", new String[]{subject, text}) : text);
+                .putExtra(Intent.EXTRA_TEXT, text);
         if (intent.resolveActivity(context.getPackageManager()) != null) {
             context.startActivity(intent);
         }

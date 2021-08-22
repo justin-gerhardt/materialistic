@@ -21,6 +21,7 @@ import androidx.lifecycle.Observer;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
@@ -73,8 +74,14 @@ public class StoryRecyclerViewAdapter extends
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (dy > 0) { // scrolling down
-                markAsViewed(((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findFirstVisibleItemPosition() - 1);
+                LinearLayoutManager manager =  ((LinearLayoutManager) recyclerView.getLayoutManager());
+                int firstVisible = manager.findFirstVisibleItemPosition();
+                int lastVisible = manager.findLastVisibleItemPosition();
+                markAsViewed( firstVisible - 1);
+                // the last item can't be scrolled past, so if we are only displaying one item (the last item has a large margin so scrolling can push everything else off) mark as read
+                if (firstVisible == lastVisible) {
+                    markAsViewed( firstVisible );
+                }
             }
         }
     };
@@ -237,6 +244,13 @@ public class StoryRecyclerViewAdapter extends
 
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position, List<Object> payloads) {
+        // add a screen height margin to the last item so we can scroll every other item offscreen
+        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+        int screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
+        params.bottomMargin = position == getItemCount() - 1 ? screenHeight : 0;
+
+        holder.itemView.setLayoutParams(params);
+
         if (payloads.contains(VOTED)) {
             holder.animateVote(getItem(position).getScore());
         } else {

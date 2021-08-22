@@ -19,6 +19,8 @@ package io.github.hidroh.materialistic.data;
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -225,13 +227,15 @@ public class HackerNewsClient implements ItemManager, UserManager {
         if (ids == null) {
             return null;
         }
-        HackerNewsItem[] items = new HackerNewsItem[ids.length];
-        for (int i = 0; i < items.length; i++) {
+        List<HackerNewsItem> list = new ArrayList<>(ids.length);
+        for (int i = 0; i < ids.length; i++) {
             HackerNewsItem item = new HackerNewsItem(ids[i]);
             item.rank = i + 1;
-            items[i] = item;
+            if (!mSessionManager.isViewed(item.getId()).toBlocking().first()) {
+                list.add(item);
+            }
         }
-        return items;
+        return list.toArray(new HackerNewsItem[0]);
     }
 
     interface RestService {

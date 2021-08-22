@@ -51,16 +51,16 @@ public class Application extends android.app.Application implements Injectable {
         AppCompatDelegate.setDefaultNightMode(Preferences.Theme.getAutoDayNightMode(this));
         AlgoliaClient.sSortByTime = Preferences.isSortByRecent(this);
         mRefWatcher = LeakCanary.install(this);
-        if (BuildConfig.DEBUG) {
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectAll()
-                    .penaltyFlashScreen()
-                    .build());
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectAll()
-                    .penaltyLog()
-                    .build());
-        }
+//        if (BuildConfig.DEBUG) {
+//            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+//                    .detectAll()
+//                    .penaltyFlashScreen()
+//                    .build());
+//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+//                    .detectAll()
+//                    .penaltyLog()
+//                    .build());
+//        }
         Preferences.migrate(this);
         TYPE_FACE = FontCache.getInstance().get(this, Preferences.Theme.getTypeface(this));
         AppUtils.registerAccountsUpdatedListener(this);

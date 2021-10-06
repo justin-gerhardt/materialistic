@@ -97,6 +97,10 @@ public class AppUtils {
 
     public static void openWebUrlExternal(Context context, @Nullable WebItem item,
                                           String url, @Nullable CustomTabsSession session) {
+        openWebUrlExternal(context, item, url, session, true);
+    }
+    public static void openWebUrlExternal(Context context, @Nullable WebItem item,
+                                          String url, @Nullable CustomTabsSession session, boolean forceHNExternal) {
         if (!hasConnection(context)) {
             context.startActivity(new Intent(context, OfflineWebActivity.class)
                     .putExtra(OfflineWebActivity.EXTRA_URL, url));
@@ -112,19 +116,23 @@ public class AppUtils {
                     } else {
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     }
-                    openWebUrlExternalFromIntent(intent, context, url);
+                    openWebUrlExternalFromIntent(intent, context, url, forceHNExternal);
                 } catch (ActivityNotFoundException e) {
-                    openWebUrlExternalFromIntent(createCustomTabViewIntent(context, item, url, session), context, url);
+                    openWebUrlExternalFromIntent(createCustomTabViewIntent(context, item, url, session), context, url, forceHNExternal);
                 }
             } else {
-                openWebUrlExternalFromIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(url)), context, url);
+                openWebUrlExternalFromIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(url)), context, url, forceHNExternal);
             }
         } catch (ActivityNotFoundException ignored){}
     }
 
-    private static void openWebUrlExternalFromIntent(Intent intent, Context context, String url) {
+    private static void openWebUrlExternalFromIntent(Intent intent, Context context, String url, boolean forceHNExternal) {
         if (!HackerNewsClient.BASE_WEB_URL.contains(Uri.parse(url).getHost())) {
             context.startActivity(intent);
+            return;
+        }
+        if(!forceHNExternal){
+            context.startActivity(new Intent(intent).setPackage(context.getPackageName()));
             return;
         }
         List<ResolveInfo> activities = context.getPackageManager()
@@ -182,7 +190,7 @@ public class AppUtils {
                         if (action == MotionEvent.ACTION_UP) {
                             if (links[0] instanceof URLSpan) {
                                 openWebUrlExternal(widget.getContext(), null,
-                                        ((URLSpan) links[0]).getURL(), null);
+                                        ((URLSpan) links[0]).getURL(), null, false);
                             } else {
                                 links[0].onClick(widget);
                             }

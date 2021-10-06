@@ -39,8 +39,11 @@ import android.os.Parcelable;
 import android.text.Html;
 import android.text.Layout;
 import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.method.MovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.view.ContextThemeWrapper;
@@ -159,48 +162,7 @@ public class AppUtils {
 
     public static void setTextWithLinks(TextView textView, CharSequence html) {
         textView.setText(html);
-        // TODO https://code.google.com/p/android/issues/detail?id=191430
-        //noinspection Convert2Lambda
-        textView.setOnTouchListener(new View.OnTouchListener() {
-            @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                if (action == MotionEvent.ACTION_UP ||
-                        action == MotionEvent.ACTION_DOWN) {
-                    int x = (int) event.getX();
-                    int y = (int) event.getY();
-
-                    TextView widget = (TextView) v;
-                    x -= widget.getTotalPaddingLeft();
-                    y -= widget.getTotalPaddingTop();
-
-                    x += widget.getScrollX();
-                    y += widget.getScrollY();
-
-                    Layout layout = widget.getLayout();
-                    int line = layout.getLineForVertical(y);
-                    int off = layout.getOffsetForHorizontal(line, x);
-
-                    ClickableSpan[] links = Spannable.Factory.getInstance()
-                            .newSpannable(widget.getText())
-                            .getSpans(off, off, ClickableSpan.class);
-
-                    if (links.length != 0) {
-                        if (action == MotionEvent.ACTION_UP) {
-                            if (links[0] instanceof URLSpan) {
-                                openWebUrlExternal(widget.getContext(), null,
-                                        ((URLSpan) links[0]).getURL(), null, false);
-                            } else {
-                                links[0].onClick(widget);
-                            }
-                        }
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     public static CharSequence fromHtml(String htmlText) {
@@ -222,7 +184,21 @@ public class AppUtils {
             //noinspection deprecation
             spanned = Html.fromHtml(htmlText, null, CODE_TAG_HANDLER);
         }
-        return trim(spanned);
+
+        SpannableStringBuilder strBuilder = new SpannableStringBuilder(spanned);
+        URLSpan[] urls = strBuilder.getSpans(0, spanned.length(), URLSpan.class);
+        for(URLSpan span : urls) {
+            int start = strBuilder.getSpanStart(span);
+            int end = strBuilder.getSpanEnd(span);
+            int flags = strBuilder.getSpanFlags(span);
+            ClickableSpan clickable = new ClickableSpan() {
+                public void onClick(View view) {
+                    openWebUrlExternal(view.getContext(), null, span.getURL(), null, false);                }
+            };
+            strBuilder.setSpan(clickable, start, end, flags);
+            strBuilder.removeSpan(span);
+        }
+        return trim(strBuilder);
     }
 
     public static Intent makeSendIntentChooser(Context context, Uri data) {

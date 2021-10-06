@@ -491,6 +491,7 @@ public class WebFragment extends LazyLoadFragment
         mWebView.getSettings().setLoadWithOverviewMode(isRemote);
         mWebView.getSettings().setUseWideViewPort(isRemote);
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setDomStorageEnabled(true);
         getActivity().invalidateOptionsMenu();
     }
 

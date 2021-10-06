@@ -36,6 +36,15 @@
 
     <uses-sdk tools:overrideLibrary="androidx.browser" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data
+                android:host="news.ycombinator.com"
+                android:scheme="https" />
+        </intent>
+    </queries>
+
     <application
         android:name=".Application"
         android:supportsRtl="false"

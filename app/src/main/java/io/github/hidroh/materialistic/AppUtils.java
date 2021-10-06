@@ -101,11 +101,29 @@ public class AppUtils {
                     .putExtra(OfflineWebActivity.EXTRA_URL, url));
             return;
         }
-        Intent intent = createViewIntent(context, item, url, session);
-        if (!HackerNewsClient.BASE_WEB_URL.contains(Uri.parse(url).getHost())) {
-            if (intent.resolveActivity(context.getPackageManager()) != null) {
-                context.startActivity(intent);
+        try {
+            if (Preferences.customTabsEnabled(context)) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER);
+                    } else {
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    }
+                    openWebUrlExternalFromIntent(intent, context, url);
+                } catch (ActivityNotFoundException e) {
+                    openWebUrlExternalFromIntent(createCustomTabViewIntent(context, item, url, session), context, url);
+                }
+            } else {
+                openWebUrlExternalFromIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(url)), context, url);
             }
+        } catch (ActivityNotFoundException ignored){}
+    }
+
+    private static void openWebUrlExternalFromIntent(Intent intent, Context context, String url) {
+        if (!HackerNewsClient.BASE_WEB_URL.contains(Uri.parse(url).getHost())) {
+            context.startActivity(intent);
             return;
         }
         List<ResolveInfo> activities = context.getPackageManager()
@@ -115,11 +133,10 @@ public class AppUtils {
             if (info.activityInfo.packageName.equalsIgnoreCase(context.getPackageName())) {
                 continue;
             }
-            intents.add(createViewIntent(context, item, url, session)
-                    .setPackage(info.activityInfo.packageName));
+            intents.add(new Intent(intent).setPackage(info.activityInfo.packageName));
         }
         if (intents.isEmpty()) {
-            return;
+            throw new ActivityNotFoundException();
         }
         if (intents.size() == 1) {
             context.startActivity(intents.remove(0));
@@ -586,15 +603,15 @@ public class AppUtils {
     }
 
     @NonNull
-    private static Intent createViewIntent(Context context, @Nullable WebItem item,
+    private static Intent createCustomTabViewIntent(Context context, @Nullable WebItem item,
                                            String url, @Nullable CustomTabsSession session) {
-        if (Preferences.customTabsEnabled(context)) {
+
             CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder(session)
                     .setToolbarColor(ContextCompat.getColor(context,
                             AppUtils.getThemedResId(context, R.attr.colorPrimary)))
                     .setShowTitle(true)
-                    .enableUrlBarHiding()
-                    .addDefaultShareMenuItem();
+                    .setUrlBarHidingEnabled(true)
+                    .setShareState(CustomTabsIntent.SHARE_STATE_ON);
             if (item != null) {
                 builder.addMenuItem(context.getString(R.string.comments),
                         PendingIntent.getActivity(context, 0,
@@ -606,9 +623,6 @@ public class AppUtils {
                                         PendingIntent.FLAG_ONE_SHOT));
             }
             return builder.build().intent.setData(Uri.parse(url));
-        } else {
-            return new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        }
     }
 
     @SuppressLint("InlinedApi")

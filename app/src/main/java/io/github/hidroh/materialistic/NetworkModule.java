@@ -96,8 +96,8 @@ class NetworkModule {
                         return socket;
                     }
                 })
-                .cache(new Cache(context.getApplicationContext().getCacheDir(), CACHE_SIZE))
-                .addNetworkInterceptor(new CacheOverrideNetworkInterceptor())
+//                .cache(new Cache(context.getApplicationContext().getCacheDir(), CACHE_SIZE))
+//                .addNetworkInterceptor(new CacheOverrideNetworkInterceptor())
                 .addInterceptor(new ConnectionAwareInterceptor(context))
                 .addInterceptor(new LoggingInterceptor())
                 .followRedirects(false)

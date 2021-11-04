@@ -33,8 +33,8 @@ import rx.schedulers.Schedulers;
 public interface RestServiceFactory {
     String CACHE_CONTROL_FORCE_CACHE = "Cache-Control: only-if-cached, max-stale=" + Integer.MAX_VALUE;
     String CACHE_CONTROL_FORCE_NETWORK = "Cache-Control: no-cache";
-    String CACHE_CONTROL_MAX_AGE_30M = "Cache-Control: max-age=" + (30 * 60);
-    String CACHE_CONTROL_MAX_AGE_24H = "Cache-Control: max-age=" + (24 * 60 * 60);
+    String CACHE_CONTROL_MAX_AGE_30M = CACHE_CONTROL_FORCE_NETWORK;
+    String CACHE_CONTROL_MAX_AGE_24H = CACHE_CONTROL_FORCE_NETWORK;
 
     RestServiceFactory rxEnabled(boolean enabled);
 
